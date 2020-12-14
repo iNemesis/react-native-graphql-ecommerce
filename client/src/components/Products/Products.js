@@ -2,6 +2,17 @@ import React from 'react';
 import styled from 'styled-components';
 import SubHeader from '../Header/SubHeader';
 import ProductItem from './ProductItem';
+import { useQuery, gql } from '@apollo/client';
+
+const GET_PRODUCTS = gql`
+query getProducts {
+  products {
+    id
+    title
+    thumbnail
+  }
+}
+`;
 
 const ProductItemsWrapper = styled.div`
   display: flex;
@@ -16,9 +27,8 @@ const Alert = styled.span`
   text-align: center;
 `;
 
-const Products = ({ history, loading, error, products }) => {
-  const isEmpty = products.length === 0 ? 'No products available' : false;
-
+const Products = ({ history }) => {
+    const {data, loading, error } = useQuery(GET_PRODUCTS);
   return (
     <>
       {history && (
@@ -27,16 +37,13 @@ const Products = ({ history, loading, error, products }) => {
           goToCart={() => history.push('/cart')}
         />
       )}
-      {!loading && !error && !isEmpty ? (
-        <ProductItemsWrapper>
-          {products &&
-            products.map(product => (
-              <ProductItem key={product.id} data={product} />
+    {(loading || error) && <Alert>{loading ? 'Loading...': error}</Alert>}
+        {data && (<ProductItemsWrapper>
+            {data.products &&
+            data.products.map(product => (
+                <ProductItem key={product.id} data={product} />
             ))}
-        </ProductItemsWrapper>
-      ) : (
-        <Alert>{loading ? 'Loading' : error || isEmpty}</Alert>
-      )}
+        </ProductItemsWrapper>)}
     </>
   );
 };
